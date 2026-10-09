@@ -1,0 +1,49 @@
+{# templates/security/2fa_disable_confirm.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Désactiver l'authentification à deux facteurs{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-warning">
+                        <h2 class="text-center text-dark">Désactiver l'authentification à deux facteurs</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <p class="mb-0">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                                <strong>Attention :</strong> La désactivation de l'authentification à deux facteurs 
+                                rendra votre compte moins sécurisé.
+                            </p>
+                        </div>
+
+                        <p class="lead text-center mb-4">
+                            Voulez-vous vraiment désactiver l'authentification à deux facteurs pour votre compte ?
+                        </p>
+
+                        <div class="text-center">
+                            <p>Compte : <strong>{{ user.email }}</strong></p>
+                            <p>L'authentification à deux facteurs est actuellement <span class="badge bg-success">activée</span>.</p>
+                        </div>
+
+                        <form action="{{ path('app_2fa_disable') }}" method="post" class="mt-4">
+                            <input type="hidden" name="_token" value="{{ csrf_token('disable_2fa') }}">
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-danger btn-lg">
+                                    <i class="bi bi-x-circle"></i> Oui, désactiver l'A2F
+                                </button>
+                                <a href="{{ path('app_home') }}" class="btn btn-secondary btn-lg">
+                                    <i class="bi bi-arrow-left"></i> Annuler
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

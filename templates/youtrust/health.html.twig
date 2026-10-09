@@ -1,0 +1,135 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}YouTrust - Etat du service{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ path('youtrust_dashboard') }}">YouTrust</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Etat du service</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-heart-pulse"></i> Etat du service YouTrust
+            </h1>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <i class="bi bi-gear"></i> Configuration
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <tbody>
+                                    <tr>
+                                        <th width="40%">Etat</th>
+                                        <td>
+                                            {% if is_configured %}
+                                                <span class="badge bg-success">Configure</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Non configure</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>URL de l'API</th>
+                                        <td><code>{{ api_base_url }}</code></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Cl API</th>
+                                        <td><code>{{ api_key_masked }}</code></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                {% if is_configured %}
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-success text-white">
+                            <i class="bi bi-check2-circle"></i> Tester la connexion
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">
+                                Vous pouvez tester la connexion a l'API YouTrust en recuperant la liste des demandes de signature.
+                            </p>
+                            <a href="{{ path('youtrust_list_requests_page') }}" class="btn btn-success">
+                                <i class="bi bi-list-ul"></i> Lister les demandes de signature
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-danger text-white">
+                            <i class="bi bi-exclamation-triangle"></i> Configuration manquante
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">
+                                Le service YouTrust n'est pas configure. Veuillez verifier que les variables d'environnement
+                                suivantes sont definies dans votre fichier .env:
+                            </p>
+                            <div class="alert alert-light">
+                                <pre><code>YOUTRUST_API_KEY=votre_cle_api_ici
+YOUTRUST_BASE_URL=https://api-sandbox.yousign.app/v3</code></pre>
+                            </div>
+                            <p>
+                                <strong>Pour Sandbox (tests):</strong> <code>https://api-sandbox.yousign.app/v3</code><br>
+                                <strong>Pour Production:</strong> <code>https://api.yousign.app/v3</code>
+                            </p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-info text-white">
+                        <i class="bi bi-question-circle"></i> Aide
+                    </div>
+                    <div class="card-body">
+                        <h5>Variables d'environnement</h5>
+                        <p>
+                            Le service YouTrust utilise les variables d'environnement suivantes :
+                        </p>
+                        <ul>
+                            <li><strong>YOUTRUST_API_KEY</strong> : Votre cle API YouTrust</li>
+                            <li><strong>YOUTRUST_BASE_URL</strong> : URL de base de l'API YouTrust (par defaut: https://api-sandbox.yousign.app/v3)</li>
+                        </ul>
+
+                        <h5 class="mt-4">Tester rapidement</h5>
+                        <p>
+                            Vous pouvez tester rapidement le service en utilisant le document de test fournit avec ce projet :
+                        </p>
+                        <div class="d-flex gap-2">
+                            <a href="{{ path('youtrust_download_test_document') }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-download"></i> Telecharger
+                            </a>
+                            <a href="{{ path('youtrust_simple_request_new') }}" class="btn btn-outline-success btn-sm">
+                                <i class="bi bi-pencil-square"></i> Creer une demande simple
+                            </a>
+                        </div>
+
+                        <h5 class="mt-4">Documentation API</h5>
+                        <p>
+                            Consultez la <a href="https://dev.yousign.com/" target="_blank" class="link-primary">documentation officielle de YouTrust</a> 
+                            pour plus d'informations sur l'API.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <a href="{{ path('youtrust_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Retour au tableau de bord
+            </a>
+        </div>
+    </div>
+{% endblock %}

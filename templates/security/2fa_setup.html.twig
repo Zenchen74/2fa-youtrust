@@ -1,0 +1,85 @@
+{# templates/security/2fa_setup.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Configuration de l'authentification à deux facteurs{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="text-center">Configuration de l'authentification à deux facteurs</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <p>Pour activer l'authentification à deux facteurs, scannez ce code QR avec une application
+                                comme Google Authenticator, Authy ou Microsoft Authenticator.</p>
+                        </div>
+
+                        <div class="text-center mb-4">
+                            <img src="{{ qr_code_data_uri(qrCodeUrl) }}" alt="QR Code" class="img-fluid" style="max-width: 200px;">
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <p><strong>Si vous ne pouvez pas scanner le QR code,</strong> entrez manuellement ce code dans votre application :</p>
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control" value="{{ secret }}" id="secretKey" readonly>
+                                <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard()">
+                                    <i class="bi bi-clipboard"></i> Copier
+                                </button>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        {% if app.flashes is not empty %}
+                            {% for type, messages in app.flashes %}
+                                {% for message in messages %}
+                                    <div class="alert alert-{{ type }}">
+                                        {{ message }}
+                                    </div>
+                                {% endfor %}
+                            {% endfor %}
+                        {% endif %}
+
+                        <h4 class="text-center mb-4">Vérification du code</h4>
+                        <p class="text-center mb-4">
+                            Une fois le QR code scanné, entrez le code à 6 chiffres généré par votre application pour vérifier que tout fonctionne.
+                        </p>
+
+                        {{ form_start(form, {action: path('app_2fa_setup'), method: 'POST', attr: {'data-turbo': 'false'}}) }}
+                            <div class="mb-3">
+                                {{ form_label(form.code) }}
+                                {{ form_widget(form.code, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.code) }}
+                                <div class="form-text">Entrez le code à 6 chiffres affiché dans votre application</div>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle"></i> Vérifier le code
+                                </button>
+                            </div>
+                        {{ form_end(form) }}
+
+                        <p class="text-center mt-4">
+                            Une fois la vérification réussie, <strong>redémarrez votre session pour que les changements soient pris en compte.</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function copyToClipboard() {
+            const copyText = document.getElementById('secretKey');
+            copyText.select();
+            document.execCommand('copy');
+            alert('Code secret copié dans le presse-papiers !');
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,59 @@
+{# templates/security/2fa_login.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Vérification à deux facteurs{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="text-center">Vérification à deux facteurs</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-4">
+                            <i class="bi bi-shield-lock" style="font-size: 3rem; color: #0d6efd;"></i>
+                        </div>
+
+                        {% if authenticationError %}
+                            <div class="alert alert-danger">
+                                {{ authenticationError }}
+                            </div>
+                        {% endif %}
+
+                        <p class="text-center mb-4">
+                            Veuillez entrer le code à 6 chiffres généré par votre application d'authentification.
+                        </p>
+
+                        <form action="{{ checkPathRoute ? path(checkPathRoute) : checkPathUrl }}" method="post" class="mt-4">
+                            <div class="mb-3">
+                                <label for="{{ authCodeParameterName }}" class="form-label">Code de vérification :</label>
+                                <input type="text" class="form-control" id="{{ authCodeParameterName }}" 
+                                       name="{{ authCodeParameterName }}" 
+                                       pattern="[0-9]{6}" required autocomplete="one-time-code"
+                                       placeholder="123456" autocomplete="off">
+                                <div class="form-text">Entrez le code affiché dans votre application</div>
+                            </div>
+                            
+                            {% if isCsrfProtectionEnabled %}
+                                <input type="hidden" name="{{ csrfParameterName }}" value="{{ csrf_token(csrfTokenId) }}">
+                            {% endif %}
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-check-circle"></i> Vérifier et se connecter
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="mt-4 text-center">
+                            <p>Problème avec l'authentification à deux facteurs ?</p>
+                            <p>Assurez-vous que l'heure sur votre appareil est synchronisée.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

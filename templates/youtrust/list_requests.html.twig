@@ -1,0 +1,144 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}YouTrust - Liste des demandes de signature{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .status-badge {
+            font-size: 0.875rem;
+        }
+        .truncated {
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ path('youtrust_dashboard') }}">YouTrust</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Demandes de signature</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-list-ul"></i> Demandes de signature
+            </h1>
+            <a href="{{ path('youtrust_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+        </div>
+
+        {% if signature_requests is empty %}
+            <div class="alert alert-info">
+                <h4 class="alert-heading">
+                    <i class="bi bi-info-circle"></i> Aucune demande de signature
+                </h4>
+                <p>
+                    Aucune demande de signature n'a ete trouvee. Creer votre premiere demande de signature
+                    pour commencer a utiliser le service YouTrust.
+                </p>
+                <hr>
+                <div class="d-flex gap-2">
+                    <a href="{{ path('youtrust_complete_request_new') }}" class="btn btn-info">
+                        <i class="bi bi-plus-lg"></i> Demande complete
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nom</th>
+                                    <th>Etat</th>
+                                    <th>Date de creation</th>
+                                    <th>Date de fin</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in signature_requests %}
+                                    <tr>
+                                        <td>
+                                            <code class="truncated" title="{{ request.id }}">{{ request.id }}</code>
+                                        </td>
+                                        <td>
+                                            {{ request.name|default('N/A') }}
+                                            {% if request.external_id is not empty %}
+                                                <br>
+                                                <small class="text-muted">
+                                                    <strong>Ext ID:</strong> {{ request.external_id }}
+                                                </small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% set status = request.status|default('unknown') %}
+                                            {% if status == 'waiting' %}
+                                                <span class="badge bg-warning status-badge">En attente</span>
+                                            {% elseif status == 'on_going' %}
+                                                <span class="badge bg-primary status-badge">En cours</span>
+                                            {% elseif status == 'completed' %}
+                                                <span class="badge bg-success status-badge">Termine</span>
+                                            {% elseif status == 'expired' %}
+                                                <span class="badge bg-secondary status-badge">Expire</span>
+                                            {% elseif status == 'cancelled' %}
+                                                <span class="badge bg-danger status-badge">Annule</span>
+                                            {% else %}
+                                                <span class="badge bg-light text-dark status-badge">{{ status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ request.created_at|date('Y-m-d H:i')|default('N/A') }}
+                                        </td>
+                                        <td>
+                                            {{ request.finalized_at|date('Y-m-d H:i')|default('N/A') }}
+                                            {% if request.expires_at is not empty %}
+                                                <br>
+                                                <small class="text-muted">
+                                                    <strong>Expire:</strong> {{ request.expires_at|date('Y-m-d H:i') }}
+                                                </small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{{ path('youtrust_view_request', {'id': request.id}) }}"
+                                               class="btn btn-sm btn-outline-primary" title="Voir les details">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            {% if request.status|default('unknown') != 'cancelled' %}
+                                                <form method="post"
+                                                      action="{{ path('youtrust_cancel_request', {'id': request.id}) }}"
+                                                      onsubmit="return confirm('Etes-vous sur de vouloir annuler cette demande de signature?')"
+                                                      class="d-inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('cancel-' ~ request.id) }}">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Annuler">
+                                                        <i class="bi bi-x-circle"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="d-flex gap-2 mb-4">
+            <a href="{{ path('youtrust_complete_request_new') }}" class="btn btn-info">
+                <i class="bi bi-plus-lg"></i> Nouvelle demande complete
+            </a>
+        </div>
+    </div>
+{% endblock %}

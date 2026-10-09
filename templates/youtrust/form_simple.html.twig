@@ -1,0 +1,379 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}YouTrust - Nouvelle demande simple{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .form-section {
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .form-section-header {
+            background-color: #f8f9fa;
+            padding: 0.75rem 1.5rem;
+            border-bottom: 1px solid #dee2e6;
+            border-radius: 0.375rem 0.375rem 0 0;
+            margin: -1.5rem -1.5rem 1rem -1.5rem;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ path('youtrust_dashboard') }}">YouTrust</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Nouvelle demande simple</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-file-earmark-plus"></i> Nouvelle demande de signature simple
+            </h1>
+            <a href="{{ path('youtrust_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+        </div>
+
+        <div class="alert alert-info mb-4">
+            <h4 class="alert-heading">
+                <i class="bi bi-info-circle"></i> Demande simple
+            </h4>
+            <p>
+                Ce formulaire vous permet de creer une demande de signature avec <strong>un seul document et un seul signataire</strong>.
+                C'est ideal pour des tests rapides et pour vous familiariser avec le service YouTrust.
+            </p>
+            <hr>
+            <p class="mb-0">
+                Pour une demande avec plusieurs signataires, utilisez le formulaire 
+                <a href="{{ path('youtrust_complete_request_new') }}" class="alert-link">Demande complete</a>.
+            </p>
+        </div>
+
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+
+        <form method="post" action="{{ path('youtrust_simple_request_create') }}" enctype="multipart/form-data">
+            {# Document Section #}
+            <div class="form-section">
+                <div class="form-section-header">
+                    <h5><i class="bi bi-file-earmark-pdf"></i> Document a signer</h5>
+                </div>
+
+                <div class="mb-3">
+                    <label for="use_test_document" class="form-label">
+                        Utiliser le document de test
+                    </label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="use_test_document" 
+                               name="use_test_document" value="1" {{ test_document_exists ? 'checked' : '' }}
+                               onchange="toggleDocumentSource(this)">
+                        <label class="form-check-label" for="use_test_document">
+                            Utiliser le document de test fourni (test-document.pdf)
+                            {% if test_document_exists %}
+                                <a href="{{ test_document_url }}" target="_blank" class="link-primary">
+                                    <i class="bi bi-download"></i> telecharger
+                                </a>
+                            {% else %}
+                                <span class="text-danger">(document non trouve)</span>
+                            {% endif %}
+                        </label>
+                    </div>
+                    <div class="form-text">
+                        Le document de test est un PDF simple qui peut etre utilise pour des tests rapides.
+                    </div>
+                </div>
+
+                <div id="document_upload_section" style="display: {{ test_document_exists ? 'none' : 'block' }};">
+                    <div class="mb-3">
+                        <label for="document" class="form-label">
+                            <i class="bi bi-upload"></i> Telecharger un document
+                        </label>
+                        <input class="form-control" type="file" id="document" name="document" 
+                               accept=".pdf,.doc,.docx">
+                        <div class="form-text">
+                            Formats acceptes: PDF, DOC, DOCX. Taille max: 10Mo
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Signer Section #}
+            <div class="form-section">
+                <div class="form-section-header">
+                    <h5><i class="bi bi-person"></i> Signataire</h5>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="first_name" class="form-label">
+                            <i class="bi bi-person"></i> Prenom *
+                        </label>
+                        <input type="text" class="form-control" id="first_name" name="first_name" 
+                               placeholder="Jean" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="last_name" class="form-label">
+                            <i class="bi bi-person"></i> Nom *
+                        </label>
+                        <input type="text" class="form-control" id="last_name" name="last_name" 
+                               placeholder="Dupont" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="email" class="form-label">
+                            <i class="bi bi-envelope"></i> Email *
+                        </label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               placeholder="jean.dupont@exemple.com" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="phone_number" class="form-label">
+                            <i class="bi bi-telephone"></i> Telephone
+                        </label>
+                        <input type="tel" class="form-control" id="phone_number" name="phone_number" 
+                               placeholder="+33612345678">
+                        <div class="form-text">
+                            Obligatoire pour l'authentification par SMS (OTP)
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="signer_locale" class="form-label">
+                            <i class="bi bi-globe"></i> Langue
+                        </label>
+                        <select class="form-select" id="signer_locale" name="signer_locale">
+                            <option value="fr" selected>Francais</option>
+                            <option value="en">Anglais</option>
+                            <option value="es">Espagnol</option>
+                            <option value="de">Allemand</option>
+                            <option value="it">Italien</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="signature_level" class="form-label">
+                            <i class="bi bi-shield-check"></i> Niveau de signature
+                        </label>
+                        <select class="form-select" id="signature_level" name="signature_level">
+                            <option value="electronic_signature" selected>Signature electronique simple</option>
+                            <option value="advanced_electronic_signature">Signature electronique avancee</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="signature_authentication_mode" class="form-label">
+                            <i class="bi bi-key"></i> Mode d'authentification
+                        </label>
+                        <select class="form-select" id="signature_authentication_mode" name="signature_authentication_mode">
+                            <option value="otp_sms" selected>OTP par SMS</option>
+                            <option value="otp_email">OTP par Email</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="signer_delivery_mode" class="form-label">
+                            <i class="bi bi-send"></i> Mode de livraison
+                        </label>
+                        <select class="form-select" id="signer_delivery_mode" name="signer_delivery_mode">
+                            <option value="email" selected>Email</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {# Request Configuration Section #}
+            <div class="form-section">
+                <div class="form-section-header">
+                    <h5><i class="bi bi-gear"></i> Configuration de la demande</h5>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="name" class="form-label">
+                            <i class="bi bi-pencil"></i> Nom de la demande
+                        </label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               placeholder="Ma demande de signature" value="Demande de signature simple">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="delivery_mode" class="form-label">
+                            <i class="bi bi-send"></i> Mode de livraison
+                        </label>
+                        <select class="form-select" id="delivery_mode" name="delivery_mode">
+                            <option value="email" selected>Email</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="timezone" class="form-label">
+                            <i class="bi bi-clock"></i> Fuseau horaire
+                        </label>
+                        <select class="form-select" id="timezone" name="timezone">
+                            <option value="Europe/Paris" selected>Europe/Paris</option>
+                            <option value="Europe/Brussels">Europe/Brussels</option>
+                            <option value="Europe/London">Europe/London</option>
+                            <option value="UTC">UTC</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="audit_trail_locale" class="form-label">
+                            <i class="bi bi-file-text"></i> Locale de l'audit
+                        </label>
+                        <select class="form-select" id="audit_trail_locale" name="audit_trail_locale">
+                            <option value="fr" selected>Francais</option>
+                            <option value="en">Anglais</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="smart_anchors_resolution" class="form-label">
+                        <i class="bi bi-anchor"></i> Resolution des ancres intelligentes
+                    </label>
+                    <select class="form-select" id="smart_anchors_resolution" name="smart_anchors_resolution">
+                        <option value="on_activation" selected>a l'activation</option>
+                        <option value="on_signature">a la signature</option>
+                    </select>
+                    <div class="form-text">
+                        Quand les ancres intelligentes doivent-elles etre resolues ?
+                    </div>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="ordered_signers" name="ordered_signers" 
+                           value="1">
+                    <label class="form-check-label" for="ordered_signers">
+                        Les signataires doivent signer dans l'ordre
+                    </label>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="signers_allowed_to_decline" 
+                           name="signers_allowed_to_decline" value="1" checked>
+                    <label class="form-check-label" for="signers_allowed_to_decline">
+                        Les signataires peuvent refuser de signer
+                    </label>
+                </div>
+
+                <div class="mb-3">
+                    <label for="parse_anchors" class="form-label">
+                        <i class="bi bi-search"></i> Analyser les ancres
+                    </label>
+                    <select class="form-select" id="parse_anchors" name="parse_anchors">
+                        <option value="1" selected>Oui</option>
+                        <option value="0">Non</option>
+                    </select>
+                    <div class="form-text">
+                        Doit-on analyser les ancres de signature dans le document ?
+                    </div>
+                </div>
+            </div>
+
+            {# Email Notification Section #}
+            <div class="form-section">
+                <div class="form-section-header">
+                    <h5><i class="bi bi-envelope"></i> Notifications par email</h5>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="sender_type" class="form-label">
+                            <i class="bi bi-person"></i> Type d'expediteur
+                        </label>
+                        <select class="form-select" id="sender_type" name="sender_type">
+                            <option value="custom" selected>Personnalise</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="sender_custom_name" class="form-label">
+                            <i class="bi bi-pencil"></i> Nom de l'expediteur
+                        </label>
+                        <input type="text" class="form-control" id="sender_custom_name" name="sender_custom_name" 
+                               placeholder="Systme de test" value="Systme de test">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="request_subject" class="form-label">
+                        <i class="bi bi-envelope"></i> Sujet de la demande
+                    </label>
+                    <input type="text" class="form-control" id="request_subject" name="request_subject" 
+                           placeholder="Objet de l'email de demande" value="Demande de signature - Test">
+                </div>
+
+                <div class="mb-3">
+                    <label for="request_body" class="form-label">
+                        <i class="bi bi-text-paragraph"></i> Corps de la demande
+                    </label>
+                    <textarea class="form-control" id="request_body" name="request_body" rows="3" 
+                              placeholder="Contenu de l'email de demande">Ceci est une demande de signature de test.</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="reminder_subject" class="form-label">
+                        <i class="bi bi-bell"></i> Sujet du rappel
+                    </label>
+                    <input type="text" class="form-control" id="reminder_subject" name="reminder_subject" 
+                           placeholder="Objet de l'email de rappel" value="Rappel: Demande de signature">
+                </div>
+
+                <div class="mb-3">
+                    <label for="reminder_body" class="form-label">
+                        <i class="bi bi-text-paragraph"></i> Corps du rappel
+                    </label>
+                    <textarea class="form-control" id="reminder_body" name="reminder_body" rows="3" 
+                              placeholder="Contenu de l'email de rappel">Veuillez signer le document s'il vous plat.</textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="reminder_interval_days" class="form-label">
+                            <i class="bi bi-calendar"></i> Intervalle des rappels (jours)
+                        </label>
+                        <input type="number" class="form-control" id="reminder_interval_days" 
+                               name="reminder_interval_days" value="1" min="1" max="30">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="reminder_max_occurrences" class="form-label">
+                            <i class="bi bi-infinity"></i> Nombre max de rappels
+                        </label>
+                        <input type="number" class="form-control" id="reminder_max_occurrences" 
+                               name="reminder_max_occurrences" value="3" min="1" max="10">
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <a href="{{ path('youtrust_dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Annuler
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-send"></i> Creer la demande de signature
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function toggleDocumentSource(checkbox) {
+            const uploadSection = document.getElementById('document_upload_section');
+            if (checkbox.checked) {
+                uploadSection.style.display = 'none';
+            } else {
+                uploadSection.style.display = 'block';
+            }
+        }
+    </script>
+{% endblock %}
